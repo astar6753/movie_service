@@ -12,6 +12,7 @@
 <head>
     <meta charset="UTF-8">
     <link rel="stylesheet" href="/assets/css/reset.css">
+    <link rel="stylesheet" href="/assets/css/header.css">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css"
         integrity="sha384-DyZ88mC6Up2uqS4h/KRgHuoeGwBcD4Ng9SiP4dIRy0EXTlnuz47vAwmeGwVChigm" crossorigin="anonymous"/>
     <script src="http://code.jquery.com/jquery-3.4.1.min.js"></script>
@@ -24,6 +25,44 @@
 </head>
 <body>
     <header>
+        <nav id="gnb">
+            <div class="user_info">
+                <c:if test="${user==null}">
+                    <a href="/account/login">로그인</a>
+                    <a href="/account/join">회원가입</a>
+                </c:if>
+                <c:if test="${user!=null}">
+                    <div class="pf_img" style="background-image: url('${user.ai_profile_img}');"></div>
+                    <a href="/account/detail?member_no=${user.ai_seq}">
+                        <c:if test="${user.ai_nickname==null}">
+                            ${user.ai_name}
+                        </c:if>
+                        <c:if test="${user.ai_nickname!=null}">
+                            ${user.ai_nickname}
+                        </c:if>
+                        (${user.ai_id})
+                    </a>
+                    <a href="/account/logout">로그아웃</a>
+                </c:if>
+            </div>
+            <ul>
+                <li>
+                    <a href="/">영화 홈</a>
+                </li>
+                <li>
+                    <a href="/score">평점 리뷰</a>
+                </li>
+                <li>
+                    <a href="/user/review">내 리뷰 관리</a>
+                </li>
+                <li>
+                    <a href="/user/comment">내 댓글 평점 관리</a>
+                </li>
+                <li>
+                    <a href="/"></a>
+                </li>
+            </ul>
+        </nav>
     </header>
 </body>
 </html>

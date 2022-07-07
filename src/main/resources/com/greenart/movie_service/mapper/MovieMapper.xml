@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.greenart.movie_service.mapper.MovieMapper">
+    <select id="selectHomeItemList" resultType="com.greenart.movie_service.data.MovieHomeItemVO">
+        SELECT
+            a.mi_seq, a.mi_genre_seq, a.mi_title, a.mi_viewing_age,
+            a.mi_opening_dt, b.mimg_file_name
+        FROM movie_info a LEFT OUTER JOIN 
+        (
+            SELECT * FROM movie_image WHERE mimg_is_poster=1
+            GROUP BY mimg_mi_seq
+        ) b
+        ON a.mi_seq = b.mimg_mi_seq
+        WHERE mi_showing_status = #{opening_status}
+        ORDER BY mi_opening_dt DESC 
+        LIMIT 10
+    </select>
+    <select id="selectMovieInfoBySeq" resultType="com.greenart.movie_service.data.MovieInfoVO">
+        SELECT a.*,b.genre_name, c.mimg_file_name as poster_img FROM movie_info a
+        LEFT outer join genre_info b 
+            ON a.mi_genre_seq = b.genre_seq
+        LEFT outer join 
+        (
+            SELECT * FROM movie_image WHERE mimg_is_poster=1
+            GROUP BY mimg_mi_seq
+        ) c 
+            ON a.mi_seq = c.mimg_mi_seq
+        WHERE mi_seq = #{seq}
+    </select>
+    <select id="selectMovieStoryInfoBySeq" resultType="com.greenart.movie_service.data.MovieStoryInfoVO">
+        SELECT * FROM 
+        (
+            SELECT msi_order AS n_order, msi_file_name AS content, 'img' AS type
+                FROM movie_story_img 
+                WHERE msi_mi_seq = #{seq}
+        UNION ALL
+            SELECT mst_order AS n_order, mst_content AS content, 'text' AS type
+                FROM movie_story_text 
+                WHERE mst_mi_seq = #{seq}
+        )a
+        ORDER BY n_order ASC
+    </select>
+    <select id="selectMovieCastingInfoBySeq" resultType="com.greenart.movie_service.data.MovieCastingInfoVO">
+        SELECT 
+            b.cai_seq , b.cai_name, 
+            c.cap_file_name, 
+            a.maci_casting_name, a.maci_role
+            FROM movie_actor_casting_info a
+        INNER JOIN cinema_actor_info b 
+            ON a.maci_cai_seq =b.cai_seq 
+        LEFT OUTER JOIN cinema_actor_photo c
+            ON a.maci_cai_seq =c.cap_cai_seq
+        WHERE maci_mi_seq = #{seq}
+    </select>
+    <select id="selectMovieImagesBySeq" resultType="java.lang.String">
+        SELECT mimg_file_name FROM movie_image WHERE mimg_mi_seq = #{seq}
+    </select>
+    <select id="selectTrailersBySeq" resultType="java.lang.String">
+        SELECT tvi_file_name FROM trailer_video_info WHERE tvi_mi_seq = #{seq}
+    </select>
+    
+    <select id="selectMovieImagesBySeqPosterPlus" resultType="java.lang.String">
+        SELECT mimg_file_name FROM movie_image
+        WHERE mimg_mi_seq = #{seq}
+        AND mimg_is_poster= 1 limit 1
+        order by mimg_seq asc
+    </select>
+
+</mapper>
