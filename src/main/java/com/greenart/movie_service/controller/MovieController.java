@@ -1,5 +1,7 @@
 package com.greenart.movie_service.controller;
 
+import javax.servlet.http.HttpSession;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -14,12 +16,10 @@ import com.greenart.movie_service.service.MovieService;
 public class MovieController {
     @Autowired MovieService movie_service;
     @GetMapping("/detail")
-    public String getMovieDetail(@RequestParam Integer movie_no, Model model) {
-        
-        model.addAttribute("data", movie_service.getMovieInfoAll(movie_no));
+    public String getMovieDetail(@RequestParam Integer movie_no, Model model, HttpSession session) {
+        model.addAttribute("data", movie_service.getMovieInfoAll(movie_no, session));
         
         
         return "/movie/detail";
     }
-    
 }

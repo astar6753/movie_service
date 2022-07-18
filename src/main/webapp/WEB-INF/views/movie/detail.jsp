@@ -6,6 +6,11 @@
     <meta charset="UTF-8">
     <title>Document</title>
     <link rel="stylesheet" href="/assets/css/detail.css">
+    <script src="/assets/js/movie/detail.js"></script>
+    <script>
+        let movie_seq = '${data.movie_info.mi_seq}'
+        let user_seq = '${user.ai_seq}';
+    </script>
 </head>
 <body>
     <main>
@@ -24,9 +29,12 @@
                     </h2>
                     <div class="score">
                         <div class="star_score">
-                            <div class="gauge"></div>
+                            <img src="/assets/images/star_bg.png">
+                            <div class="gauge" style="width: ${data.score*10.0}%"></div>
                         </div>
-                        <p class="score_value">9.99</p>
+                        <p class="score_value">
+                            <fmt:formatNumber value="${data.score}" pattern=".00"/>
+                        </p>
                     </div>
                     <table>
                         <tr>
@@ -89,7 +97,7 @@
                                 <span>${item.maci_casting_name}</span>
                             </p>
                         </div>
-                    </div>                    
+                    </div>
                 </c:forEach>
             </div>
             <div class="movie_photo">
@@ -100,7 +108,15 @@
                             <div class="gallery_img">
                                 <img src="${item}">
                             </div>
-                        </c:forEach>                                
+                        </c:forEach>
+                    </div>
+                    <div class="btns">
+                        <button id="gallery_prev">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button id="gallery_next">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -113,16 +129,18 @@
                 </div>
             </div>
             <div class="comment_area">
-                <h1>댓글/평점</h1>
-                <div class="comment_item">
+                <h1>평점/댓글</h1>
+                <!--<%-- <div class="comment_item">
                     <div class="comment_score">
                         <div class="star_score">
+                            <img src="/assets/images/star_bg.png">
                             <div class="star_guage"></div>
                         </div>
+                        <p class="score"></p>
                     </div>
                     <div class="comment_content">
                         <p class="comment">댓글이 어쩌고 저쩌고</p>
-                        <p>
+                        <p class="user">
                             <span class="user">닉네임(아이디)</span>
                             <span class="sep">|</span>
                             <span class="reg_dt">2000-01-01 10:00</span>
@@ -131,38 +149,89 @@
                         </p>
                     </div>
                     <div class="comment_like_dislike">
-                        <button id="like">
+                        <button class="like">
                             <i class="fas fa-thumbs-up"></i>
                             <span class="cnt">1,121</span>
                         </button>
-                        <button id="dislike">
+                        <button class="dislike">
                             <i class="fas fa-thumbs-down"></i>
                             <span class="cnt">21</span>
                         </button>
                     </div>
-                </div>
+                </div> --%>-->
             </div>
             <div class="input_comment_area">
-                <h1>댓글 평점 입력</h1>
-                <div class="score_input">
-                    <div class="score_btn">
-                        <span class="score_box"></span>
-                        <span class="score_box"></span>
-                        <span class="score_box"></span>
-                        <span class="score_box"></span>
-                        <span class="score_box"></span>
-                        <span class="score_box"></span>
-                        <span class="score_box"></span>
-                        <span class="score_box"></span>
-                        <span class="score_box"></span>
-                        <span class="score_box"></span>
+                <c:if test="${data.user_comment !=null}">
+                    <h1>내 평점/댓글</h1>
+                    <div class="score_input">
+                        <div class="score_btn">
+                            <img src="/assets/images/star_bg.png">
+                            <c:forEach begin="1" end="10" varStatus="stat">
+                                <span class="score_box_click" style="left:${(stat.index-1)*12}px"></span>
+                            </c:forEach>
+                            <c:forEach begin="1" end="${data.user_comment.mc_rate}">
+                                <span class="score_box" style="background-color:orangered"></span>
+                            </c:forEach>
+                            <c:forEach begin="${data.user_comment.mc_rate+1}" end="10">
+                                <span class="score_box"></span>
+                            </c:forEach>
+                        </div>
+                        <p class="final_score">${data.user_comment.mc_rate}</p>
+                        <script> score = '${data.user_comment.mc_rate}'</script>
                     </div>
-                    <p class="final_score">9</p>
-                </div>
-                <textarea id="input_comment" cols="30" rows="10"></textarea>
-                <button id="save_comment">평점등록</button>
+                        <textarea id="input_comment" cols="30" rows="10">${data.user_comment.mc_content}</textarea>
+                        <button id="modify_comment" data-seq="${data.user_comment.mc_seq}">평점/댓글 수정</button>
+                        <button id="delete_comment" data-seq="${data.user_comment.mc_seq}">평점/댓글 삭제</button>
+                </c:if>
+        
+                <c:if test="${data.user_comment ==null}">
+                    <h1>평점/댓글 입력</h1>
+                    <div class="score_input">
+                        <div class="score_btn">
+                            <img src="/assets/images/star_bg.png">
+                            <c:forEach begin="1" end="10" varStatus="stat">
+                                <span class="score_box_click" style="left:${(stat.index-1)*12}px"></span>
+                            </c:forEach>
+                            <c:forEach begin="1" end="10">
+                                <span class="score_box" style="background-color:orangered"></span>
+                            </c:forEach>
+                        </div>
+                        <p class="final_score">10</p>
+                    </div>
+                    <c:if test="${user!=null}">
+                        <textarea id="input_comment" cols="30" rows="10"></textarea>
+                        <button id="save_comment">평점/댓글 등록</button>
+                    </c:if>
+                    <c:if test="${user==null}">
+                        <textarea id="input_comment" cols="30" rows="10" disabled>로그인 후 사용 가능합니다.</textarea>
+                        <button id="save_comment">평점/댓글 등록</button>
+                    </c:if>
+                </c:if>
             </div>
+
         </section>
     </main>
+
+    <div class="comment_report_popup">
+        <div class="comment_report">
+            <h1>댓글 신고</h1>
+            <div class="comment_report_content">
+                <p class="content">댓글이 어쩌고 저쩌고</p>
+            </div>
+            <p>신고 사유</p>
+            <div class="reasons">
+                <input type="radio" name="reason" id="reason1" value="1" checked>
+                <label for="reason1">욕설 및 비방글 입니다.</label>
+                <input type="radio" name="reason" id="reason2" value="2">
+                <label for="reason2">음란물입니다.</label>
+                <input type="radio" name="reason" id="reason3" value="3">
+                <label for="reason3">불법 광고 및 홍보 글입니다.</label>
+                <input type="radio" name="reason" id="reason4" value="4">
+                <label for="reason4">타인의 명예를 훼손할 수 있습니다.</label>
+            </div>
+            <button id="report">신고하기</button>
+            <button id="report_cancel">취소</button>
+        </div>
+    </div>
 </body>
 </html>

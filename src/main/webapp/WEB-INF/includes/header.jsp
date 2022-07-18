@@ -32,7 +32,7 @@
                     <a href="/account/join">회원가입</a>
                 </c:if>
                 <c:if test="${user!=null}">
-                    <div class="pf_img" style="background-image: url('${user.ai_profile_img}');"></div>
+                    <div class="pf_img" style="background-image: url('/images/account_profile/${user.ai_profile_img}');"></div>
                     <a href="/account/detail?member_no=${user.ai_seq}">
                         <c:if test="${user.ai_nickname==null}">
                             ${user.ai_name}
@@ -53,10 +53,10 @@
                     <a href="/score">평점 리뷰</a>
                 </li>
                 <li>
-                    <a href="/user/review">내 리뷰 관리</a>
+                    <a href="/account/review">리뷰 관리</a>
                 </li>
                 <li>
-                    <a href="/user/comment">내 댓글 평점 관리</a>
+                    <a href="/account/comment">평점/댓글 관리</a>
                 </li>
                 <li>
                     <a href="/"></a>

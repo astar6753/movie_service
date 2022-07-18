@@ -9,3 +9,9 @@ main {background-color: rgb(100,100,100);
     padding-top: 50px; width: 1200px; margin: 0 auto; padding-left: 210px;
     box-sizing: border-box;
 }
+
+.pf_img {width: 80px; height: 80px; border-radius: 50%;
+    border: 1px solid #767676;
+    background-size: 100%; background-position: center;
+    background-repeat: no-repeat;
+}

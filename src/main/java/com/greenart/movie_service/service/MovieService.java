@@ -4,20 +4,30 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.servlet.http.HttpSession;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.greenart.movie_service.data.AccountInfoVO;
 import com.greenart.movie_service.data.MovieCastingInfoVO;
 import com.greenart.movie_service.data.MovieInfoVO;
 import com.greenart.movie_service.data.MovieStoryInfoVO;
+import com.greenart.movie_service.mapper.HistoryMapper;
 import com.greenart.movie_service.mapper.MovieMapper;
 
 @Service
 public class MovieService {
     @Autowired MovieMapper movie_mapper;
-    public Map<String,Object> getMovieInfoAll(Integer seq) {
+    @Autowired HistoryMapper history_mapper;
+    public Map<String,Object> getMovieInfoAll(Integer seq, HttpSession session) {
         Map<String,Object> resultMap = new LinkedHashMap<String, Object>();
 
+        AccountInfoVO user = (AccountInfoVO)session.getAttribute("user");
+        if(user != null) {
+            history_mapper.insertMovieLookupHistory(seq, user.getAi_seq());
+            resultMap.put("user_comment", movie_mapper.selectMovieCommentByAccount(user.getAi_seq(), seq));
+        }
 
         MovieInfoVO movie_info = movie_mapper.selectMovieInfoBySeq(seq);
         movie_info.setPoster_img("/images/movie/"+movie_info.getPoster_img());
@@ -48,6 +58,11 @@ public class MovieService {
             trailer_list.set(i,"/images/movie_trailer/"+trailer_list.get(i));
         }
         resultMap.put("movie_trailers",trailer_list);
+
+        Double score = movie_mapper.selectMovieAvgScore(seq);
+        resultMap.put("score", score);
+
+
 
         return resultMap;
     }

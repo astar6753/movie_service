@@ -3,29 +3,29 @@
     "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.greenart.movie_service.mapper.MovieMapper">
     <select id="selectHomeItemList" resultType="com.greenart.movie_service.data.MovieHomeItemVO">
-        SELECT
-            a.mi_seq, a.mi_genre_seq, a.mi_title, a.mi_viewing_age,
-            a.mi_opening_dt, b.mimg_file_name
-        FROM movie_info a LEFT OUTER JOIN 
-        (
-            SELECT * FROM movie_image WHERE mimg_is_poster=1
-            GROUP BY mimg_mi_seq
-        ) b
-        ON a.mi_seq = b.mimg_mi_seq
+        SELECT mi_seq, mi_genre_seq, mi_title, mi_viewing_age, 
+            mi_opening_dt, (
+                SELECT mimg_file_name FROM movie_image
+                WHERE mimg_is_poster=1 AND mimg_mi_seq = mi_seq
+                ORDER BY mimg_seq DESC
+                LIMIT 1
+            ) AS mimg_file_name
+        FROM movie_info
         WHERE mi_showing_status = #{opening_status}
+        and mi_title like '%${keyword}%'
         ORDER BY mi_opening_dt DESC 
         LIMIT 10
     </select>
     <select id="selectMovieInfoBySeq" resultType="com.greenart.movie_service.data.MovieInfoVO">
-        SELECT a.*,b.genre_name, c.mimg_file_name as poster_img FROM movie_info a
+        SELECT a.*,b.genre_name, (
+                SELECT mimg_file_name FROM movie_image
+                WHERE mimg_is_poster=1 AND mimg_mi_seq = mi_seq
+                ORDER BY mimg_seq DESC
+                LIMIT 1
+            ) AS poster_img 
+        FROM movie_info a
         LEFT outer join genre_info b 
             ON a.mi_genre_seq = b.genre_seq
-        LEFT outer join 
-        (
-            SELECT * FROM movie_image WHERE mimg_is_poster=1
-            GROUP BY mimg_mi_seq
-        ) c 
-            ON a.mi_seq = c.mimg_mi_seq
         WHERE mi_seq = #{seq}
     </select>
     <select id="selectMovieStoryInfoBySeq" resultType="com.greenart.movie_service.data.MovieStoryInfoVO">
@@ -62,9 +62,84 @@
     
     <select id="selectMovieImagesBySeqPosterPlus" resultType="java.lang.String">
         SELECT mimg_file_name FROM movie_image
-        WHERE mimg_mi_seq = #{seq}
-        AND mimg_is_poster= 1 limit 1
-        order by mimg_seq asc
+        WHERE mimg_mi_seq = #{seq} AND mimg_is_poster= 1 limit 1
+        ORDER BY mimg_seq asc
     </select>
+
+    <insert id="insertCommentInfo">
+        INSERT INTO movie_comment
+        (mc_mi_seq, mc_ai_seq, mc_content, mc_rate)
+        VALUES
+        (#{mc_mi_seq}, #{mc_ai_seq}, #{mc_content}, #{mc_rate})
+    </insert>
+    <select id="selectMovieCommentByAccount" resultType="com.greenart.movie_service.data.MovieCommentVO">
+        SELECT * FROM movie_comment WHERE mc_ai_seq = #{seq} AND mc_mi_seq = #{mi_seq}
+        ORDER BY mc_seq limit 1
+    </select>
+    <update id="updateMovieComment">
+        UPDATE movie_comment
+        SET 
+            mc_content= #{mc_content}, 
+            mc_rate= #{mc_rate}, 
+            mc_mod_dt= now()
+        WHERE mc_seq= #{mc_seq}
+    </update>
+    <delete id="deleteMovieComment">
+        DELETE FROM movie_comment
+        WHERE mc_seq= #{seq}
+    </delete>
+    
+    <select id="selectMovieCommentBySeq" resultType="com.greenart.movie_service.data.MovieCommentDetailVO">
+        SELECT * FROM movie_comment_view
+        WHERE mc_mi_seq = #{seq}
+        limit 10 offset #{offset}
+    </select>
+    <select id="selectMovieCommentPageCount" resultType="java.lang.Integer">
+        SELECT ceil(count(*)/10)
+        FROM movie_comment_view
+        WHERE mc_mi_seq = #{seq}
+    </select>
+    <select id="selectMovieCommentCount" resultType="java.lang.Integer">
+        SELECT count(*)
+        FROM movie_comment_view
+        WHERE mc_mi_seq = #{seq}
+    </select>
+
+    <insert id="insertCommentLike">
+        INSERT INTO comment_like_dislike
+        (cld_ai_seq, cld_mc_seq, cld_like_dislike)
+        VALUES
+        (#{cld_ai_seq}, #{cld_mc_seq}, #{cld_like_dislike})
+    </insert>
+    <select id="selectCommentInfo" resultType="com.greenart.movie_service.data.CommentLikeVO">
+        SELECT *
+        FROM comment_like_dislike
+        WHERE cld_ai_seq = #{cld_ai_seq} AND cld_mc_seq = #{cld_mc_seq}
+    </select>
+    <update id="updateCommentLike">
+        UPDATE comment_like_dislike
+        SET cld_like_dislike=#{cld_like_dislike}
+        WHERE cld_ai_seq = #{cld_ai_seq} AND cld_mc_seq = #{cld_mc_seq}
+    </update>
+
+    <select id="selectMovieAvgScore" resultType="java.lang.Double">
+        SELECT AVG(mc_rate) FROM movie_comment
+        GROUP BY mc_mi_seq
+        HAVING mc_mi_seq = #{seq}
+    </select>
+
+
+    <insert id="insertCommentReport">
+        INSERT INTO comment_report
+        (cr_ai_seq, cr_mc_seq, cr_reason)
+        VALUES
+        (#{ai_seq}, #{mc_seq}, #{reason})
+    </insert>
+    <select id="isReported" resultType="java.lang.Boolean">
+        SELECT COUNT(*)
+        FROM comment_report
+        WHERE cr_ai_seq = #{ai_seq} AND cr_mc_seq = #{mc_seq}
+    </select>
+    
 
 </mapper>
